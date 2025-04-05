@@ -1,0 +1,22 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/preprocessing.py
+    deps:
+    - path: data/reference-data.csv
+      hash: md5
+      md5: a2543fafc251183b938af8521d958cb7
+      size: 67637
+    - path: src/preprocessing.py
+      hash: md5
+      md5: 319ebef955db0244c7b37073ad54cc3e
+      size: 588
+    outs:
+    - path: data/X.csv
+      hash: md5
+      md5: 977d99114628cdf7872cdb4735f975bb
+      size: 1359
+    - path: data/y.csv
+      hash: md5
+      md5: 79a96491d6727073f6ab293ea4584052
+      size: 791

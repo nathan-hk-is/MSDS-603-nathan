@@ -1,0 +1,9 @@
+stages:
+  prepare:
+    cmd: python src/preprocessing.py
+    deps:
+      - data/reference-data.csv
+      - src/preprocessing.py
+    outs:
+      - data/X.csv
+      - data/y.csv
