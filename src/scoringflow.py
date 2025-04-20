@@ -1,11 +1,11 @@
-from metaflow import FlowSpec, step
+from metaflow import FlowSpec, step, Flow
 import numpy as np
+import mlflow
 
 class ScoreFlow(FlowSpec):
 
     @step
     def start(self):
-        import mlflow
         import pandas as pd
         from sklearn.model_selection import train_test_split
         
@@ -19,28 +19,26 @@ class ScoreFlow(FlowSpec):
         X = df[['animal-life-stage', 'animal-sex']]
         y = df['prey']
         self.train_data, self.test_data, self.train_labels, self.test_labels = train_test_split(X, y)
-        
-        mlflow.set_tracking_uri('sqlite:///mlflow.db')
-        mlflow.set_experiment('metaflow-experiment')
-        
-        logged_model = 'runs:/4dc58019848942e5852e45daa6d1caf5/metaflow_train'
-        sklearn_model = mlflow.sklearn.load_model(logged_model)
+        self.next(self.load_model)
+    
+    @step
+    def load_model(self):
+        run = Flow('TrainFlow').latest_run
+        self.model = run['end'].task.data.model
+        self.next(self.predict)
 
-        def score(inp):
-            return inp.model, inp.model.score(inp.test_data, inp.test_labels)
-
-        self.results = sorted(map(score, inputs), key=lambda x: -x[1])
-        self.model = self.results[0][0]
-        with mlflow.start_run():
-            mlflow.sklearn.log_model(self.model, artifact_path = 'metaflow_train', registered_model_name="metaflow-wine-model")
-            mlflow.end_run()
+    @step
+    def predict(self):
+        import pandas as pd
+        self.preds = self.model.predict(self.test_data)
+        out = pd.DataFrame({'prediction': self.preds, 'actual': self.test_labels})
+        out.to_csv('preds.csv', index=False)
         self.next(self.end)
 
     @step
     def end(self):
-        print('Scores:')
-        print('\n'.join('%s %f' % res for res in self.results))
-        print('Model:', self.model)
+        print('First five predictions:')
+        print(self.preds[:5])
 
 
 if __name__=='__main__':

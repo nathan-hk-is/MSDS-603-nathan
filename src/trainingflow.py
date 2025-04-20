@@ -47,10 +47,10 @@ class TrainFlow(FlowSpec):
         def score(inp):
             return inp.model, inp.model.score(inp.test_data, inp.test_labels)
 
-        self.results = sorted(map(score, inputs), key=lambda x: -x[1])
+        self.results = sorted(map(score, inputs), key=lambda x: x[1])
         self.model = self.results[0][0]
         with mlflow.start_run():
-            mlflow.sklearn.log_model(self.model, artifact_path = 'metaflow_train', registered_model_name="metaflow-wine-model")
+            mlflow.sklearn.log_model(self.model, artifact_path='metaflow_train', registered_model_name='metaflow-cats-model')
             mlflow.end_run()
         self.next(self.end)
 
